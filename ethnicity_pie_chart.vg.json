@@ -1,0 +1,116 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "A bump chart showing population by ethnicity for Malaysia from 2022 to 2023.",
+  "width": 380,
+  "height": 300,
+  "data": {
+    "url": "data/population_state_original.csv"
+  },
+  "layer": [
+    {
+      "params": [
+                  {
+                    "name": "highlight",
+                    "select": {"type": "point", "on": "mouseover"}
+                  },
+                  {"name": "select", "select":{"type": "point", "fields": ["Gender"]}}
+                ],
+                "mark": {"type": "arc", "innerRadius": 50, "cursor": "pointer"},
+                "encoding": {
+                  "fillOpacity":{
+                    "condition": {"param": "select", "value": 1},
+                    "value": 0.3
+                  },
+                  "theta": {"aggregate":"sum", "field":"Population", "stack": "normalize"},
+                  "color": {
+                    "field": "Gender",
+                    "scale":{
+                      "range":[
+                        "#f28e2b",
+                        "#4e79a7"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "strokeWidth": {
+                    "condition": [
+                      {
+                        "param": "select",
+                        "empty": false,
+                        "value": 2
+                      },
+                      {
+                        "param": "highlight",
+                        "empty": false,
+                        "value": 1
+                      }
+                    ],
+                    "value": 0
+                  }
+                }
+            
+    },
+    {
+      "mark": {
+              "type": "image",
+              "width": 35,
+              "height": 18,
+              "tooltip": true,
+              "cursor": "pointer"
+            },
+            "transform": [
+              {
+                "lookup": "ethnicity",
+                "from": {
+                  "data": {
+                    "url": "https://raw.githubusercontent.com/yaoyangdi/3179/main/visualisation2/data/top10_CoB.CSV",
+                    "format": {"type": "csv"}
+                  },
+                  "key": "Country",
+                  "fields": ["Population", "Year"]
+                }
+              }
+            ],
+      "encoding": {
+        "tooltip": [
+          {
+            "title": "Year",
+            "field": "date",
+            "type": "ordinal"
+          },
+          {
+            "title": "Index Type",
+            "field": "IndexType",
+            "type": "nominal"
+          },
+          {
+            "title": "Value",
+            "field": "Value",
+            "type": "quantitative"
+          }
+        ]
+      }
+    },
+    {
+      "mark": {"type": "text", "radiusOffset": 15},
+      "encoding": {
+        "text": {"field": "Value", "type": "quantitative"}
+      }
+    }
+  ],
+  "encoding": {
+    "x": {
+            "field": "Year",
+            "type": "ordinal",
+            "sort": ["2022", "2023"],
+            "axis": {"labelAngle": 0}
+          },
+    "y": {
+      "field": "Rank",
+      "type": "quantitative",
+      "sort": "descending",
+      "scale": {"domain": [0.5, 10.5]}
+    }
+  }
+}

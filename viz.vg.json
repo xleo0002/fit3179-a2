@@ -1,0 +1,302 @@
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "config": {
+      "title": {
+        "fontSize": 20
+      },
+      "axis": {
+        "labelFontSize": 12,
+        "titleFontSize": 14
+      },
+      "legend": {
+        "labelFontSize": 12,
+        "titleFontSize": 14
+      }
+    },
+    "vconcat": [
+      {
+        "width": 800,
+        "height": 400,
+        "title": {
+          "text": "Organ Pledges by Region"
+        },
+        "projection": {
+          "type": "equalEarth"
+        },
+        "layer": [
+          {
+            "data": {
+              "url": "https://raw.githubusercontent.com/xleo0002/fit3179-week9-homework/refs/heads/main/ne_10m_admin_1_states_provinces.json",
+              "format": {
+                "type": "topojson",
+                "feature": "ne_10m_admin_1_states_provinces"
+              }
+            },
+            "transform": [
+              {
+                "calculate": "datum.properties.admin === 'Malaysia' ? 'Malaysia' : 'Other'",
+                "as": "region"
+              }
+            ],
+            "mark": {
+              "type": "geoshape",
+              "stroke": "white"
+            },
+            "encoding": {
+              "color": {
+                "condition": {
+                  "test": "datum.region === 'Malaysia'",
+                  "value": "#C1E899"
+                },
+                "value": "lightgray"
+              }
+            }
+          },
+          {
+            "data": {
+              "url": "https://raw.githubusercontent.com/xleo0002/fit3179-week9-homework/refs/heads/main/data/organ_pledges_state.csv"
+            },
+            "transform": [
+              {
+                "filter": "(datum.date >= '2022-01-01' && datum.date <= '2023-12-31')"
+              },
+              {
+                "aggregate": [
+                  {
+                    "op": "sum",
+                    "field": "pledges",
+                    "as": "total_pledges"
+                  }
+                ],
+                "groupby": [
+                  "state"
+                ]
+              },
+              {
+                "calculate": "datum.state === 'W.P. Kuala Lumpur' ? 'Kuala Lumpur' : (datum.state === 'W.P. Labuan' ? 'Labuan' : (datum.state === 'W.P. Putrajaya' ? 'Putrajaya' : datum.state))",
+                "as": "state"
+              },
+              {
+                "lookup": "state",
+                "from": {
+                  "data": {
+                    "url": "https://raw.githubusercontent.com/xleo0002/fit3179-week9-homework/refs/heads/main/ne_10m_admin_1_states_provinces.json",
+                    "format": {
+                      "type": "topojson",
+                      "feature": "ne_10m_admin_1_states_provinces"
+                    }
+                  },
+                  "key": "properties.name",
+                  "fields": [
+                    "properties"
+                  ]
+                }
+              }
+            ],
+            "params": [
+              {
+                "name": "select",
+                "select": {
+                  "type": "point",
+                  "fields": [
+                    "state"
+                  ]
+                }
+              }
+            ],
+            "mark": {
+              "type": "circle",
+              "color": "royalblue",
+              "opacity": 0.8
+            },
+            "encoding": {
+              "longitude": {
+                "field": "properties.longitude",
+                "type": "quantitative"
+              },
+              "latitude": {
+                "field": "properties.latitude",
+                "type": "quantitative"
+              },
+              "size": {
+                "field": "total_pledges",
+                "type": "quantitative",
+                "title": "Pledge Count",
+                "scale": {
+                  "range": [
+                    50,
+                    1500
+                  ]
+                },
+                "legend": {
+                  "title": "Total Pledges"
+                }
+              },
+              "color": {
+                "value": "royalblue"
+              },
+              "opacity": {
+                "condition": {
+                  "param": "select",
+                  "value": 0.8
+                },
+                "value": 0.4
+              },
+              "tooltip": [
+                {
+                  "field": "state",
+                  "type": "nominal",
+                  "title": "State"
+                },
+                {
+                  "field": "total_pledges",
+                  "type": "quantitative",
+                  "format": ",",
+                  "title": "Total Pledges"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "hconcat": [
+          {
+            "width": 400,
+            "height": 400,
+            "title": {
+              "text": "Population by Age Group"
+            },
+            "data": {
+              "url": "data/population_state.csv",
+              "format": {
+                "type": "csv"
+              }
+            },
+            "transform": [
+              {
+                "filter": "datum.ethnicity === 'overall'"
+              },
+              {
+                "filter": {
+                  "param": "select",
+                  "empty": true
+                }
+              },
+              {
+                "aggregate": [
+                  {
+                    "op": "sum",
+                    "field": "population",
+                    "as": "total_population"
+                  }
+                ],
+                "groupby": [
+                  "age"
+                ]
+              }
+            ],
+            "mark": "bar",
+            "encoding": {
+              "y": {
+                "field": "age",
+                "type": "ordinal",
+                "title": "Age Group"
+              },
+              "x": {
+                "field": "total_population",
+                "type": "quantitative",
+                "title": "Total Population"
+              },
+              "tooltip": [
+                {
+                  "field": "age",
+                  "type": "nominal",
+                  "title": "Age Group"
+                },
+                {
+                  "field": "total_population",
+                  "type": "quantitative",
+                  "title": "Total Population"
+                }
+              ]
+            }
+          },
+        
+            {"width": 400,
+            "height": 400,
+            "title": {
+                "text": "Population by Ethnicity"
+            },
+            "data": {
+                "url": "data/population_state_original.csv",
+                "format": {
+                    "type": "csv"
+                }
+            },
+            "transform": [
+                {
+                    "filter": "(datum.year >= 2022 && datum.year <= 2023)"
+                },
+                {
+                    "filter": {
+                        "param": "select",
+                        "empty": true
+                    }
+                },
+                {
+                    "aggregate": [
+                        {
+                            "op": "sum",
+                            "field": "population",
+                            "as": "Total_Population"
+                        }
+                    ],
+                    "groupby": [
+                        "ethnicity"
+                    ]
+                }
+            ],
+            "layer": [
+                {
+                    "mark": {
+                        "type": "arc",
+                        "innerRadius": 50,
+                        "outerRadius": 100
+                    },
+                    "encoding": {
+                        "theta": {
+                            "field": "Total_Population",
+                            "type": "quantitative"
+                        },
+                        "color": {
+                            "field": "ethnicity",
+                            "type": "nominal",
+                            "legend": {
+                                "orient": "right",
+                                "title": "Ethnicity"
+                            }
+                        },
+                        "tooltip": [
+                            {
+                                "field": "ethnicity",
+                                "type": "nominal",
+                                "title": "Ethnicity"
+                            },
+                            {
+                                "field": "Total_Population",
+                                "type": "quantitative",
+                                "title": "Total Population",
+                                "format": ",.1f"
+                            }
+                        ]
+                    }
+                }
+            ]
+        
+        }
+        ]
+      }
+    ]
+  }
+  
